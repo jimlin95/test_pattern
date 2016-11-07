@@ -52,9 +52,9 @@ parser.add_argument('--num_boxs', '-n',
                     default=NUM_BOXS,
                     type=int,
                     help="Number of Boxs of each row")
-parser.add_argument('--pattern_r', '-r',
-                    default=NUM_BOXS,
-                    type=int,
+parser.add_argument('--pattern_rgb', '-p',
+                    default='w',
+                    choices=['r', 'g', 'b', 'w', 'R', 'G', 'B', 'W'],
                     help="Number of Boxs of each row")
 args = parser.parse_args()
 # ---------------------------------------------------------------------------
@@ -73,9 +73,9 @@ def draw_color_box(draw):
     num_boxs = args.num_boxs
     box_width = args.box_width
     box_spacing = args.box_spacing
+    pattern_rgb = args.pattern_rgb
     index = INDEX_START
     unit_div = (255.0)/((num_boxs**2)-1)
-    print(unit_div)
     for y in range(start_y, start_y+(box_width+box_spacing)*num_boxs,
                    (box_width+box_spacing)):
         for x in range(start_x, start_x+(box_width+box_spacing)*num_boxs,
@@ -89,11 +89,18 @@ def draw_color_box(draw):
                 color_fill = 255
             else:
                 color_fill = int((index-1) * unit_div)
+            if pattern_rgb == 'w' or pattern_rgb == 'W':
+                final_color = (color_fill, color_fill, color_fill, 255)
+            if pattern_rgb == 'r' or pattern_rgb == 'R':
+                final_color = (color_fill, 0, 0, 255)
+            if pattern_rgb == 'g' or pattern_rgb == 'G':
+                final_color = (0, color_fill, 0, 255)
+            if pattern_rgb == 'b' or pattern_rgb == 'B':
+                final_color = (0, 0, color_fill, 255)
+            draw.rectangle(cor, fill=final_color)
             if args.verbose:
-                print("color={}".format(color_fill))
-            draw.rectangle(cor, fill=(color_fill, color_fill, color_fill, 255))
+                print("final_color={}".format(final_color))
             index = index + 1
-            print(index)
 
 
 def main():
