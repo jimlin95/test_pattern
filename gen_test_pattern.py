@@ -5,14 +5,16 @@ import argparse
 import Image
 import ImageDraw
 # Definition
-CANVAS_X = (1920)
-CANVAS_Y = (1080)
-START_X = (0)
-START_Y = (0)
+CANVAS_X = (1440)
+CANVAS_Y = (1440)
+START_X = (720)
+START_Y = (720)
 BOX_WIDTH = (50)
 BOX_SPACING = (10)
 INDEX_START = (1.0)
 NUM_BOXS = (4)
+OUTLINE_OFFSET = (10)
+LINE_WIDTH = (3)
 OUTFILE = "test_pattern.png"
 # args parser
 # ---------------------------------------------------------------------------
@@ -56,6 +58,10 @@ parser.add_argument('--pattern_rgb', '-p',
                     default='w',
                     choices=['r', 'g', 'b', 'w', 'R', 'G', 'B', 'W'],
                     help="Number of Boxs of each row")
+parser.add_argument('--outline_width', '-b',
+                    default=OUTLINE_OFFSET,
+                    type=int,
+                    help="The offset of outline")
 args = parser.parse_args()
 # ---------------------------------------------------------------------------
 
@@ -74,6 +80,13 @@ def draw_color_box(draw):
     box_width = args.box_width
     box_spacing = args.box_spacing
     pattern_rgb = args.pattern_rgb
+    pattern_width = (args.num_boxs * args.box_width) + \
+        args.box_spacing * (args.num_boxs - 1)
+    pattern_half = pattern_width/2
+    if args.verbose:
+        print(pattern_width, pattern_half)
+    start_x = start_x-pattern_half
+    start_y = start_y-pattern_half
     index = INDEX_START
     unit_div = (255.0)/((num_boxs**2)-1)
     for y in range(start_y, start_y+(box_width+box_spacing)*num_boxs,
@@ -101,6 +114,51 @@ def draw_color_box(draw):
             if args.verbose:
                 print("final_color={}".format(final_color))
             index = index + 1
+    # left line
+    lux = start_x - args.outline_width - LINE_WIDTH
+    luy = start_y - args.outline_width - LINE_WIDTH
+    ldx = start_x - args.outline_width - LINE_WIDTH
+    ldy = start_y + pattern_width + args.outline_width + LINE_WIDTH
+    draw.line((lux, luy, ldx, ldy),
+              fill=(255, 255, 255), width=LINE_WIDTH)
+    # top line
+    lux = start_x - args.outline_width - LINE_WIDTH
+    luy = start_y - args.outline_width - LINE_WIDTH
+    ldx = start_x + pattern_width + args.outline_width + LINE_WIDTH
+    ldy = start_y - args.outline_width - LINE_WIDTH
+    draw.line((lux, luy, ldx, ldy),
+              fill=(255, 255, 255), width=LINE_WIDTH)
+    # right line
+    lux = start_x + pattern_width + args.outline_width+LINE_WIDTH
+    luy = start_y - args.outline_width - LINE_WIDTH
+    ldx = start_x + pattern_width + args.outline_width + LINE_WIDTH
+    ldy = start_y + pattern_width + args.outline_width + LINE_WIDTH
+    draw.line((lux, luy, ldx, ldy),
+              fill=(255, 255, 255), width=LINE_WIDTH)
+    # down line
+    lux = start_x - args.outline_width - LINE_WIDTH
+    luy = start_y + pattern_width + args.outline_width + LINE_WIDTH
+    ldx = start_x + pattern_width + args.outline_width + LINE_WIDTH
+    ldy = start_y + pattern_width + args.outline_width + LINE_WIDTH
+    draw.line((lux, luy, ldx, ldy),
+              fill=(255, 255, 255), width=LINE_WIDTH)
+
+
+def merge(a, b):
+    images = map(Image.open, [a, b])
+    widths, heights = zip(*(i.size for i in images))
+
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    new_im = Image.new('RGB', (total_width, max_height))
+
+    x_offset = 0
+    for im in images:
+        new_im.paste(im, (x_offset, 0))
+        x_offset += im.size[0]
+
+    new_im.save('test.png')
 
 
 def main():
@@ -108,5 +166,8 @@ def main():
     draw = ImageDraw.Draw(im)
     draw_color_box(draw)
     im.save(args.outfile)
+    merge(args.outfile, args.outfile)
+
+
 if __name__ == '__main__':
     main()
