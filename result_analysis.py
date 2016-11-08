@@ -115,9 +115,7 @@ def probe_box(pix, x_start, y_start):
         box_sum_b / (args.probe_width**2)
 
 
-def main():
-    im = Image.open(args.infile)
-    pix = im.load()
+def color_cal(pix):
     start_y = args.y_coor
     stop_y = args.y_coor + (args.box_width + args.box_spacing) \
         * (args.num_boxs)
@@ -135,6 +133,12 @@ def main():
             all = probe_box(pix, x + (args.box_width - args.probe_width) / 2,
                             y + (args.box_width - args.probe_width) / 2)
             print("({},{}) = {}".format(x, y, all))
+
+
+def main():
+    im = Image.open(args.infile)
+    pix = im.load()
+    color_cal(pix)
 
 
 if __name__ == '__main__':
