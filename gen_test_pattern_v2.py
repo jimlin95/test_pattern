@@ -5,18 +5,22 @@ import argparse
 import Image
 import ImageDraw
 # Definition
-CANVAS_X = (1440)
+CANVAS_X = (2880)
 CANVAS_Y = (1440)
-START_X = (720)
-START_Y = (720)
+START_X1 = (760)
+START_Y1 = (720)
+START_X2 = (2160)
+START_Y2 = (720)
 BOX_WIDTH = (50)
 BOX_SPACING = (10)
 INDEX_START = (1.0)
 NUM_BOXS = (4)
 OUTLINE_OFFSET = (10)
 LINE_WIDTH = (3)
-
+LINE_COLOR = "white"
+TEMPFILE = "pattern.png"
 OUTFILE = "test_pattern.png"
+PATTERN_NUM = (2)
 # args parser
 # ---------------------------------------------------------------------------
 parser = argparse.ArgumentParser()
@@ -27,14 +31,22 @@ parser.add_argument('--verbose', '-v',
 parser.add_argument('--outfile', '-o',
                     default=OUTFILE,
                     help='Filename to  process')
-parser.add_argument('--x_coor', '-x',
-                    default=START_X,
+parser.add_argument('--x1',
+                    default=START_X1,
                     type=int,
-                    help="The X coordinate of start")
-parser.add_argument('--y_coor', '-y',
-                    default=START_Y,
+                    help="The X1 coordinate of start")
+parser.add_argument('--y1',
+                    default=START_Y1,
                     type=int,
-                    help="The Y coordinate of start")
+                    help="The Y1 coordinate of start")
+parser.add_argument('--x2',
+                    default=START_X2,
+                    type=int,
+                    help="The X2 coordinate of start")
+parser.add_argument('--y2',
+                    default=START_Y2,
+                    type=int,
+                    help="The Y2 coordinate of start")
 parser.add_argument('--box_width', '-w',
                     default=BOX_WIDTH,
                     type=int,
@@ -148,24 +160,19 @@ def picture_canvas_prepare(nb, bw, sw, of, lw):
     return im, draw
 
 
-def pattern_paste_2(pattern_file, canvas, target, outputfile):
+def pattern_paste(pattern_file, canvas, target, outputfile, num):
     img = Image.open(pattern_file, 'r')
     img_w, img_h = img.size
     background = Image.new('RGB', canvas)
     bg_w, bg_h = background.size
-    target_x1, target_y1, target_x2, target_y2 = target
-    background.paste(img, (target_x1-img_w/2, target_y1-img_h/2))
-    background.paste(img, (target_x2-img_w/2, target_y2-img_h/2))
-    background.save(outputfile)
+    if num == 1:
+        target_x1, target_y1 = target
+        background.paste(img, (target_x1-img_w/2, target_y1-img_h/2))
+    elif num == 2:
+        target_x1, target_y1, target_x2, target_y2 = target
+        background.paste(img, (target_x1-img_w/2, target_y1-img_h/2))
+        background.paste(img, (target_x2-img_w/2, target_y2-img_h/2))
 
-
-def pattern_paste_1(pattern_file, canvas, target, outputfile):
-    img = Image.open(pattern_file, 'r')
-    img_w, img_h = img.size
-    background = Image.new('RGB', canvas)
-    bg_w, bg_h = background.size
-    target_x1, target_y1 = target
-    background.paste(img, (target_x1-img_w/2, target_y1-img_h/2))
     background.save(outputfile)
 
 
@@ -180,12 +187,12 @@ def main():
                                       box_spacing, outline_width, line_width)
     draw_color_box(draw, num_boxs, box_width, box_spacing, pattern_rgb,
                    line_width)
-    draw_box_outline(im, "white", line_width)
-    im.save(args.outfile)
-    pattern_paste_2(args.outfile, (2880, 1440),
-                    (760, 720, 2160, 720), "out.png")
-    pattern_paste_1(args.outfile, (2880, 1440),
-                    (760, 720), "out_1.png")
+    draw_box_outline(im, LINE_COLOR, line_width)
+    im.save(TEMPFILE)
+    pattern_paste(TEMPFILE, (args.canvas_x, args.canvas_y),
+                  (args.x1, args.y1, args.x2, args.y2),
+                  args.outfile, PATTERN_NUM)
+
 
 if __name__ == '__main__':
     main()
